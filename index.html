@@ -71,4 +71,239 @@
       {key:"conduct", title:"Workplace Conduct (Template)",
        bullets:["Respect guests and teammates; zero harassment.",
                 "Follow manager directions; raise issues professionally.",
-                "No phone use
+                "No phone use at bar unless authorized."]},
+      {key:"service", title:"Customer Service Standards (Template)",
+       bullets:["Greet within 10 seconds with eye contact.",
+                "Repeat order; confirm size, milk, modifiers.",
+                "Quality-check before handoff; thank by name if possible."]},
+      {key:"safety", title:"Health & Safety / Food Handling (Template)",
+       bullets:["Handwash on clock-in, after breaks, after money handling, every 30 min.",
+                "Sanitize surfaces hourly with labeled solution.",
+                "Prevent allergen cross-contact; use dedicated tools when required."]},
+      {key:"dress", title:"Dress Code & Hygiene (Template)",
+       bullets:["Clean top; closed-toe, non-slip shoes.",
+                "Hair secured; minimal jewelry per safety.",
+                "Apron clean at start; replace if heavily soiled."]},
+      {key:"attendance", title:"Attendance & Shifts (Template)",
+       bullets:["Arrive 10 min early for prep and handoff.",
+                "Shift swaps require manager approval; give 24h notice when possible.",
+                "Clock in/out accurately; breaks per local law."]},
+    ];
+
+    const QUIZ = [
+      {id:"q1", prompt:"What is the primary purpose of a recipe template?",
+       options:["Provide consistent quality with steps that can be customized",
+                "Restrict baristas from adjusting for equipment and beans",
+                "Eliminate training altogether"], answer:0,
+       why:"Templates ensure baseline consistency while allowing local adjustments."},
+      {id:"q2", prompt:"Which action best prevents allergen cross-contact?",
+       options:["Rinsing tools in room-temp water","Using dedicated tools and sanitizing between drinks","Wiping with a dry towel"],
+       answer:1, why:"Dedicated tools + sanitation reduce residual allergens."},
+      {id:"q3", prompt:"A guest approaches the bar. What should happen first?",
+       options:["Continue phone use until free","Greet within 10 seconds with eye contact","Start cleaning before acknowledging"],
+       answer:1, why:"A prompt, friendly greeting sets the tone and reduces perceived wait time."}
+    ];
+
+    // --- Simple state ---
+    const completed = { welcome:false, recipes:false, policies:false, quiz:false, ...Object.fromEntries(POLICIES.map(p=>[p.key,false])) };
+    const totalTrackable = 1 + 1 + POLICIES.length + 1;
+
+    const sections = [
+      {key:"welcome", label:"Welcome"},
+      {key:"recipes", label:"Recipes"},
+      {key:"policies", label:"Policies"},
+      {key:"quiz", label:"Knowledge Check"},
+      {key:"certificate", label:"Certificate"}
+    ];
+
+    let active = "welcome";
+    let quizState = {}; // id -> {choice, correct}
+
+    // --- Helpers ---
+    const $ = (sel) => document.querySelector(sel);
+    const setProgress = () => {
+      const done = Object.values(completed).filter(Boolean).length;
+      const pct = Math.min(100, Math.round((done/totalTrackable)*100));
+      $("#bar").style.width = pct + "%";
+      $("#pct").textContent = pct + "% Complete";
+    };
+
+    const navEl = $("#nav"), mainEl = $("#main");
+    const renderNav = () => {
+      navEl.innerHTML = "";
+      sections.forEach(s=>{
+        const b = document.createElement("button");
+        b.className = "navbtn" + (active===s.key ? " active":"");
+        b.textContent = s.label + (s.key!=="certificate" && completed[s.key] ? " ✓" : "");
+        b.onclick = ()=>{ active=s.key; render(); };
+        navEl.appendChild(b);
+      });
+    };
+
+    const markCompleteBtn = (targetKey) => {
+      const div = document.createElement("div");
+      div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.alignItems="center"; div.style.marginTop="10px";
+      const status = document.createElement("span");
+      status.className="pill";
+      status.textContent = completed[targetKey] ? "Completed" : "In progress";
+      const btn = document.createElement("button");
+      btn.className="btn";
+      btn.textContent = completed[targetKey] ? "Completed" : "Mark Complete";
+      btn.disabled = completed[targetKey];
+      btn.onclick = ()=>{ completed[targetKey]=true; setProgress(); render(); };
+      div.append(status, btn);
+      return div;
+    };
+
+    const renderWelcome = () => {
+      const card = document.createElement("div"); card.className="card";
+      card.innerHTML = `
+        <h2>Welcome to CoffeeLab (Generic Module)</h2>
+        <p class="muted">This course covers templates for recipes, core policies, and a brief knowledge check.</p>
+        <div class="row" style="margin-top:10px">
+          ${["Recipes","Policies","Knowledge Check"].map(t=>`
+            <div class="card">
+              <strong>${t}</strong>
+              <p class="muted">Explore the ${t.toLowerCase()} section and mark it complete.</p>
+            </div>`).join("")}
+        </div>`;
+      card.appendChild(markCompleteBtn("welcome"));
+      return card;
+    };
+
+    const renderRecipes = () => {
+      const wrap = document.createElement("div"); wrap.className="card";
+      const h = document.createElement("h2"); h.textContent="Recipe Templates"; wrap.appendChild(h);
+      const p = document.createElement("p"); p.className="muted"; p.textContent="Use these as placeholders you can adapt to equipment and beans."; wrap.appendChild(p);
+      RECIPES.forEach(r=>{
+        const c = document.createElement("div"); c.className="card"; c.style.marginTop="10px";
+        c.innerHTML = `<div class="pill">Template</div><h3 style="margin:6px 0">${r.name}</h3><p class="muted">${r.summary}</p>`;
+        const row = document.createElement("div"); row.className="row"; row.style.marginTop="8px";
+        const specs = document.createElement("div");
+        specs.innerHTML = "<h4>Specs</h4>";
+        const ul = document.createElement("ul"); ul.className="list";
+        Object.entries(r.details).forEach(([k,v])=>{
+          const li=document.createElement("li");
+          if(Array.isArray(v)){ li.innerHTML = `<strong>${k}:</strong><ul class="list">${v.map(x=>`<li>${x}</li>`).join("")}</ul>`; }
+          else { li.innerHTML = `<strong>${k}:</strong> ${v}`; }
+          ul.appendChild(li);
+        });
+        specs.appendChild(ul);
+        const steps = document.createElement("div");
+        steps.innerHTML = `<h4>Steps</h4><ol class="list">${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+        row.append(specs,steps); c.appendChild(row); wrap.appendChild(c);
+      });
+      wrap.appendChild(markCompleteBtn("recipes"));
+      return wrap;
+    };
+
+    const renderPolicies = () => {
+      const wrap = document.createElement("div"); wrap.className="card";
+      wrap.innerHTML = `<h2>Company Policies (Generic Templates)</h2>
+        <p class="muted">Adapt these bullets to your local laws and CoffeeLab standards.</p>`;
+      POLICIES.forEach(p=>{
+        const c = document.createElement("div"); c.className="card"; c.style.marginTop="10px";
+        c.innerHTML = `<h3 style="margin:6px 0">${p.title}</h3>
+          <ul class="list">${p.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>
+          <div style="margin-top:6px" class="pill">Customize locally</div>`;
+        wrap.appendChild(c);
+        // Track each subsection as complete when main policies are marked via bulk button.
+      });
+      const bulk = document.createElement("button");
+      bulk.className="btn secondary"; bulk.style.marginTop="10px"; bulk.textContent="Mark all policy subsections complete";
+      bulk.onclick = ()=>{ POLICIES.forEach(p=>completed[p.key]=true); setProgress(); render(); };
+      wrap.appendChild(bulk);
+      wrap.appendChild(markCompleteBtn("policies"));
+      return wrap;
+    };
+
+    const renderQuiz = () => {
+      const wrap = document.createElement("div"); wrap.className="card";
+      wrap.innerHTML = `<h2>Knowledge Check</h2><p class="muted">Answer all questions to unlock your certificate.</p>`;
+      QUIZ.forEach((q,idx)=>{
+        const c = document.createElement("div"); c.className="card"; c.style.marginTop="10px";
+        const head = document.createElement("strong"); head.textContent = (idx+1)+". "+q.prompt; c.appendChild(head);
+        q.options.forEach((opt,i)=>{
+          const b = document.createElement("button");
+          const state = quizState[q.id];
+          const answered = state && typeof state.choice === "number";
+          const isSel = answered && state.choice === i;
+          const isOk  = answered && i===q.answer;
+          const isBad = answered && isSel && !isOk;
+          b.className = "choice"+(isSel?" sel":"")+(isOk?" ok":"")+(isBad?" bad":"");
+          b.textContent = opt;
+          b.onclick = ()=>{ quizState[q.id]={choice:i,correct:i===q.answer}; render(); };
+          c.appendChild(b);
+        });
+        if (quizState[q.id]) {
+          const fb = document.createElement("p");
+          fb.className = "muted";
+          fb.style.color = quizState[q.id].correct ? "var(--ok)" : "var(--warn)";
+          fb.textContent = (quizState[q.id].correct ? "Correct. " : "Not quite. ") + q.why;
+          c.appendChild(fb);
+        }
+        wrap.appendChild(c);
+      });
+      wrap.appendChild(markCompleteBtn("quiz"));
+      return wrap;
+    };
+
+    const renderCertificate = () => {
+      const wrap = document.createElement("div"); wrap.className="card";
+      wrap.innerHTML = `<h2>Your Certificate</h2>
+        <p class="muted">Complete all sections and answer all quiz questions correctly to enable printing.</p>`;
+      const allQuizCorrect = QUIZ.every(q=>quizState[q.id]?.correct);
+      const allDone = Object.values(completed).filter(Boolean).length === totalTrackable && allQuizCorrect;
+      if (allDone) {
+        const cert = document.createElement("div"); cert.className="card"; cert.style.border='2px dashed #e5e7eb';
+        cert.innerHTML = `
+          <div style="text-align:center">
+            <h3>CoffeeLab Training — Completion Certificate</h3>
+            <p class="muted">Generic eLearning Module</p>
+          </div>
+          <p style="margin-top:10px;text-align:center">
+            This is to certify that <strong>____________________</strong> has completed CoffeeLab onboarding covering
+            Recipes (templates), Policies, and Health & Safety.
+          </p>
+          <div class="row" style="margin-top:8px">
+            <div><strong>Completion Date:</strong> ${new Date().toLocaleDateString()}<br>
+                 <strong>Score:</strong> ${QUIZ.length}/${QUIZ.length}</div>
+            <div><strong>Trainer/Manager:</strong> ____________________<br>
+                 <strong>Location:</strong> ____________________</div>
+          </div>
+        `;
+        const printBtn = document.createElement("button"); printBtn.className="btn"; printBtn.style.marginTop="10px";
+        printBtn.textContent="Print / Save as PDF"; printBtn.onclick=()=>window.print();
+        wrap.appendChild(cert); wrap.appendChild(printBtn);
+      } else {
+        const need = document.createElement("div"); need.className="card"; need.innerHTML = `
+          <p>Progress required:</p>
+          <ul class="list">
+            <li>Welcome marked complete</li>
+            <li>Recipes marked complete</li>
+            <li>All Policy subsections marked complete</li>
+            <li>Knowledge Check marked complete and all answers correct</li>
+          </ul>`;
+        const score = document.createElement("p"); score.className="muted";
+        const correctCount = Object.values(quizState).filter(s=>s.correct).length;
+        score.textContent = `Quiz Score: ${correctCount}/${QUIZ.length}`;
+        wrap.appendChild(need); wrap.appendChild(score);
+      }
+      return wrap;
+    };
+
+    const render = () => {
+      renderNav(); mainEl.innerHTML="";
+      if (active==="welcome") mainEl.appendChild(renderWelcome());
+      if (active==="recipes") mainEl.appendChild(renderRecipes());
+      if (active==="policies") mainEl.appendChild(renderPolicies());
+      if (active==="quiz")     mainEl.appendChild(renderQuiz());
+      if (active==="certificate") mainEl.appendChild(renderCertificate());
+      setProgress();
+    };
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+    render();
+  </script>
+</body>
+</html>
