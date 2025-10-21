@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CoffeeLab Training (Generic)</title>
+  <style>
+    :root{--ink:#111;--sub:#6b7280;--bg:#f6f7f8;--paper:#fff;--brand:#0ea5e9;--ok:#16a34a;--warn:#e11d48;border-color:#e5e7eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
+    .top{position:sticky;top:0;background:#fffcc;border-bottom:1px solid #e5e7eb;backdrop-filter:saturate(1.2) blur(6px)}
+    .top .inner{max-width:1080px;margin:auto;padding:10px 16px;display:flex;gap:10px;align-items:center}
+    .badge{background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 10px;font-size:12px}
+    .container{max-width:1080px;margin:18px auto;display:grid;grid-template-columns:260px 1fr;gap:18px;padding:0 16px}
+    @media (max-width:900px){.container{grid-template-columns:1fr}}
+    .side{background:var(--paper);border:1px solid #e5e7eb;border-radius:16px;padding:8px}
+    .navbtn{width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:12px;cursor:pointer}
+    .navbtn:hover{background:#f9fafb} .navbtn.active{background:#eef2ff}
+    .card{background:var(--paper);border:1px solid #e5e7eb;border-radius:16px;padding:16px}
+    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .muted{color:var(--sub)} .btn{background:var(--brand);color:#fff;border:0;border-radius:12px;padding:10px 14px;cursor:pointer}
+    .btn.secondary{background:#e5e7eb;color:#111} .btn:disabled{opacity:.5;cursor:not-allowed}
+    .list{margin:0;padding-left:18px}
+    .progress{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+    .bar{height:100%;background:linear-gradient(90deg,#22c55e,#0ea5e9)}
+    .pill{display:inline-block;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:12px}
+    .choice{display:block;width:100%;text-align:left;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;background:#fff;margin:.3rem 0;cursor:pointer}
+    .choice.sel{border-color:#111} .choice.ok{background:#ecfdf5;border-color:#16a34a} .choice.bad{background:#fef2f2;border-color:#ef4444}
+    footer{margin:30px 0;text-align:center;color:var(--sub);font-size:12px}
+    .hide{display:none}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="inner">
+      <strong>☕ CoffeeLab • Training Portal (Generic)</strong>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <div style="width:180px">
+          <div class="progress"><div id="bar" class="bar" style="width:0%"></div></div>
+        </div>
+        <span id="pct" class="badge">0% Complete</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <aside class="side" id="nav"></aside>
+    <main id="main" class="col"></main>
+  </div>
+
+  <footer>© <span id="year"></span> CoffeeLab — Generic Training Module</footer>
+
+  <script>
+    // --- Data (generic placeholders) ---
+    const RECIPES = [
+      {name:"Espresso (Template)",summary:"Foundational recipe template for any espresso-based beverage.",
+       details:{dose:"18 g (±0.5 g)",yield:"36 g in cup",time:"25–30 sec",
+       notes:["Purge group head, warm cup.","Adjust grind to hit time window.","Target balance per shop standards."]},
+       steps:["Purge group and flush.","Dose, distribute, tamp level.","Pull to target yield/time.","Serve or use as base."]},
+      {name:"Iced Latte (Template)",summary:"Milk-forward iced beverage template; adjust syrups per menu.",
+       details:{cup:"16 oz",espresso:"Double (36 g)",milk:"Cold milk to top",ice:"3/4 cup",
+       notes:["Add 10–30 ml syrup as applicable","Stir to integrate"]},
+       steps:["Ice to 3/4.","Pull double espresso.","Add syrup if any.","Top with milk; lid & straw."]},
+      {name:"Cold Brew (Template)",summary:"Batch brew template for immersion-style cold brew.",
+       details:{ratio:"1:7 coffee:water",grind:"Coarse",brew:"12–18 h cold steep",
+       notes:["Filter thoroughly","Label batch and discard-by"]},
+       steps:["Combine coffee + water in sanitized vessel.","Stir, cover, steep 12–18 h refrigerated.",
+              "Filter; bottle.","Refrigerate and label."]},
+    ];
+
+    const POLICIES = [
+      {key:"conduct", title:"Workplace Conduct (Template)",
+       bullets:["Respect guests and teammates; zero harassment.",
+                "Follow manager directions; raise issues professionally.",
+                "No phone use
